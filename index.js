@@ -4,14 +4,31 @@ require("dotenv").config();
 
 const app = express();
 
+// =======================
+// Middlewares
+// =======================
 app.use(cors());
 app.use(express.json());
 
+// 🔎 DEBUG (Temporary - পরে চাইলে remove করো)
+console.log("Loaded API_KEY:", process.env.API_KEY);
+
+// =======================
 // 🔐 API KEY PROTECTION
+// =======================
 app.use("/api", (req, res, next) => {
   const apiKey = req.headers["x-api-key"] || req.query.apikey;
 
-  if (!apiKey || apiKey !== process.env.API_KEY) {
+  console.log("Incoming API Key:", apiKey); // Debug
+
+  if (!apiKey) {
+    return res.status(401).json({
+      status: false,
+      message: "API Key missing"
+    });
+  }
+
+  if (apiKey !== process.env.API_KEY) {
     return res.status(401).json({
       status: false,
       message: "Unauthorized! Invalid API Key"
@@ -21,11 +38,15 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
+// =======================
 // Routes
+// =======================
 const routes = require("./routes/downloadRoutes");
 app.use("/api", routes);
 
-// Home
+// =======================
+// Home Route
+// =======================
 app.get("/", (req, res) => {
   res.json({
     status: true,
@@ -33,6 +54,19 @@ app.get("/", (req, res) => {
   });
 });
 
+// =======================
+// 404 Handler
+// =======================
+app.use((req, res) => {
+  res.status(404).json({
+    status: false,
+    message: "Route not found"
+  });
+});
+
+// =======================
+// Start Server
+// =======================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
