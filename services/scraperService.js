@@ -3,10 +3,16 @@ const chromium = require("@sparticuz/chromium");
 
 const extractVideo = async (url) => {
   const browser = await puppeteer.launch({
-    args: chromium.args,
+    args: [
+      ...chromium.args,
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage"
+    ],
     defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath(),
-    headless: chromium.headless
+    headless: true,
+    timeout: 0
   });
 
   const page = await browser.newPage();
@@ -17,24 +23,19 @@ const extractVideo = async (url) => {
 
   let videoUrl = null;
 
-  // 🔥 Capture network responses
   page.on("response", async (response) => {
     const resUrl = response.url();
-
-    if (
-      resUrl.includes(".mp4") &&
-      resUrl.includes("instagram")
-    ) {
+    if (resUrl.includes(".mp4")) {
       videoUrl = resUrl;
     }
   });
 
   await page.goto(url, {
-    waitUntil: "networkidle2",
+    waitUntil: "domcontentloaded",
     timeout: 60000
   });
 
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  await new Promise(resolve => setTimeout(resolve, 4000));
 
   await browser.close();
 
