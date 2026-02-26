@@ -1,21 +1,35 @@
-const axios = require("axios");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 
-// Basic header to avoid block
-const headers = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-};
-
-// Simple HTML video extractor
 const extractVideo = async (url) => {
-  const { data } = await axios.get(url, { headers });
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless
+  });
 
-  const videoRegex = /<meta property="og:video" content="(.*?)"/;
-  const match = data.match(videoRegex);
+  const page = await browser.newPage();
 
-  if (!match) throw new Error("Video not found");
+  await page.setUserAgent(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  );
 
-  return match[1];
+  await page.goto(url, {
+    waitUntil: "networkidle2",
+    timeout: 60000
+  });
+
+  const videoUrl = await page.evaluate(() => {
+    const video = document.querySelector("video");
+    return video ? video.src : null;
+  });
+
+  await browser.close();
+
+  if (!videoUrl) throw new Error("Video not found");
+
+  return videoUrl;
 };
 
 module.exports = { extractVideo };
