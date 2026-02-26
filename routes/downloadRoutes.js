@@ -1,10 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-const { downloadFacebook } = require("../controllers/facebookController");
-const { downloadInstagram } = require("../controllers/instagramController");
+const {
+  facebookDownload,
+  instagramDownload,
+  autoDownload
+} = require("../controllers/downloadController");
 
-router.get("/facebook", downloadFacebook);
-router.get("/instagram", downloadInstagram);
+router.get("/facebook", facebookDownload);
+router.get("/instagram", instagramDownload);
+router.get("/download", autoDownload);
 
 module.exports = router;

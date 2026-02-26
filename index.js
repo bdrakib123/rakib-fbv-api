@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔐 API KEY PROTECTION
+// 🔐 API Key Protection
 app.use("/api", (req, res, next) => {
   const apiKey = req.headers["x-api-key"] || req.query.apikey;
 
@@ -25,16 +25,9 @@ app.use("/api", (req, res, next) => {
 const routes = require("./routes/downloadRoutes");
 app.use("/api", routes);
 
-// Home
 app.get("/", (req, res) => {
-  res.json({
-    status: true,
-    message: "Rakib FBV API Running 🚀"
-  });
+  res.json({ status: true, message: "Rakib FBV API Running 🚀" });
 });
 
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
-});
+app.listen(PORT, () => console.log("Server running on " + PORT));
