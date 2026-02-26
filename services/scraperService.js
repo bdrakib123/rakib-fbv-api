@@ -15,15 +15,26 @@ const extractVideo = async (url) => {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
   );
 
+  let videoUrl = null;
+
+  // 🔥 Capture network responses
+  page.on("response", async (response) => {
+    const resUrl = response.url();
+
+    if (
+      resUrl.includes(".mp4") &&
+      resUrl.includes("instagram")
+    ) {
+      videoUrl = resUrl;
+    }
+  });
+
   await page.goto(url, {
     waitUntil: "networkidle2",
     timeout: 60000
   });
 
-  const videoUrl = await page.evaluate(() => {
-    const video = document.querySelector("video");
-    return video ? video.src : null;
-  });
+  await new Promise(resolve => setTimeout(resolve, 5000));
 
   await browser.close();
 
