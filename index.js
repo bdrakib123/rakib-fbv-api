@@ -10,20 +10,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-<<<<<<< HEAD
-// 🔐 API Key Protection
-=======
-// 🔎 DEBUG (Temporary - পরে চাইলে remove করো)
+// 🔎 DEBUG (চাইলে পরে remove করতে পারো)
 console.log("Loaded API_KEY:", process.env.API_KEY);
 
 // =======================
 // 🔐 API KEY PROTECTION
 // =======================
->>>>>>> d93888731203514018f7801fdea7009650aa7584
 app.use("/api", (req, res, next) => {
   const apiKey = req.headers["x-api-key"] || req.query.apikey;
 
-  console.log("Incoming API Key:", apiKey); // Debug
+  console.log("Incoming API Key:", apiKey);
 
   if (!apiKey) {
     return res.status(401).json({
@@ -48,14 +44,14 @@ app.use("/api", (req, res, next) => {
 const routes = require("./routes/downloadRoutes");
 app.use("/api", routes);
 
-<<<<<<< HEAD
-=======
 // =======================
 // Home Route
 // =======================
->>>>>>> d93888731203514018f7801fdea7009650aa7584
 app.get("/", (req, res) => {
-  res.json({ status: true, message: "Rakib FBV API Running 🚀" });
+  res.json({
+    status: true,
+    message: "Rakib FBV API Running 🚀"
+  });
 });
 
 // =======================
@@ -72,4 +68,7 @@ app.use((req, res) => {
 // Start Server
 // =======================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on " + PORT));
+
+app.listen(PORT, () => {
+  console.log("Server running on " + PORT);
+});
