@@ -2,7 +2,7 @@ services:
   - type: web
     name: rakib-fbv-api
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
