@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: rakib-fbv-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: API_KEY
+        generateValue: true
+      - key: MAX_DURATION
+        value: 1800
+      - key: MAX_VIDEO_BYTES
+        value: 157286400
