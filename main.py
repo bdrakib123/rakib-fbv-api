@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 from typing import Iterator
 from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 import yt_dlp
 from fastapi import FastAPI, Header, HTTPException, Query
@@ -63,6 +64,33 @@ def validate_facebook_url(value: str) -> str:
             detail="Only HTTPS Facebook video, Reel, Watch and fb.watch links are supported",
         )
 
+    return value
+
+
+def resolve_facebook_share_url(value: str) -> str:
+    """Resolve Facebook's short /share/... redirect before passing it to yt-dlp."""
+    parsed = urlparse(value)
+    if not parsed.path.lower().startswith("/share/"):
+        return value
+
+    request = Request(
+        value,
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+    )
+    try:
+        with urlopen(request, timeout=18) as response:
+            final_url = response.geturl()
+        # Never follow a redirect outside Facebook.
+        final = urlparse(final_url)
+        allowed = {"facebook.com", "www.facebook.com", "m.facebook.com", "web.facebook.com", "fb.watch", "www.fb.watch"}
+        if final.scheme == "https" and (final.hostname or "").lower() in allowed:
+            logger.info("Resolved Facebook share URL to %s", final.path[:100])
+            return final_url
+    except Exception as exc:
+        logger.info("Facebook share redirect could not be resolved (%s); trying original URL", type(exc).__name__)
     return value
 
 
@@ -176,7 +204,8 @@ def facebook_info(
     apikey: str | None = Query(default=None),
 ):
     require_api_key(x_api_key, apikey)
-    safe_url = validate_facebook_url(url)
+    safe_url = resolve_facebook_share_url(validate_facebook_url(url))
+    safe_url = validate_facebook_url(safe_url)
     video = extract_info(safe_url)
     return {"status": True, "creator": "Rakib FBV API", "platform": "facebook", "video": video}
 
@@ -188,7 +217,8 @@ def facebook_download(
     apikey: str | None = Query(default=None),
 ):
     require_api_key(x_api_key, apikey)
-    safe_url = validate_facebook_url(url)
+    safe_url = resolve_facebook_share_url(validate_facebook_url(url))
+    safe_url = validate_facebook_url(safe_url)
 
     temp_dir = Path(tempfile.mkdtemp(prefix="rakib-fbv-"))
     output_template = str(temp_dir / "video.%(ext)s")
